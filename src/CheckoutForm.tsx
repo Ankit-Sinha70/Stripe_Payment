@@ -9,37 +9,38 @@ const CheckoutForm = () => {
   const [loading, setLoading] = useState(false);
 
   // Handle payment submission
-  const handlePayment = async (event: any) => {
+  const handlePayment = async (event:any) => {
     event.preventDefault();
     setLoading(true);
     setError("");
 
     try {
+      debugger
       const response = await fetch(
-        "http://localhost:5000/create-checkout-session",
+        "http://localhost:3000/create-checkout-session",
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ couponCode }), // Send coupon code even if it's empty
+          body: JSON.stringify({ couponCode }), // Send coupon code
         }
       );
 
       const data = await response.json();
 
-      if (data.error) {
-        setError(data.error);
+      if (!response.ok) {
+        setError(data.error || "Something went wrong");
         setLoading(false);
         return;
       }
 
-      const { error }: any = await stripe?.redirectToCheckout({
+      const { error: stripeError }:any = await stripe?.redirectToCheckout({
         sessionId: data.id,
       });
 
-      if (error) {
-        setError("Stripe checkout error: " + error.message);
+      if (stripeError) {
+        setError("Stripe checkout error: " + stripeError.message);
       }
     } catch (error) {
       setError("Something went wrong, please try again later.");
@@ -54,7 +55,7 @@ const CheckoutForm = () => {
     setError("");
     try {
       const response = await fetch(
-        "http://localhost:5000/create-checkout-session",
+        "http://localhost:3000/create-checkout-session",
         {
           method: "POST",
           headers: {
@@ -63,20 +64,21 @@ const CheckoutForm = () => {
           body: JSON.stringify({ couponCode: "" }),
         }
       );
+
       const data = await response.json();
 
-      if (data.error) {
-        setError(data.error);
+      if (!response.ok) {
+        setError(data.error || "Something went wrong");
         setLoading(false);
         return;
       }
 
-      const { error }: any = await stripe?.redirectToCheckout({
+      const { error: stripeError }:any = await stripe?.redirectToCheckout({
         sessionId: data.id,
       });
 
-      if (error) {
-        setError("Stripe checkout error: " + error.message);
+      if (stripeError) {
+        setError("Stripe checkout error: " + stripeError.message);
       }
     } catch (error) {
       setError("Something went wrong, please try again later.");

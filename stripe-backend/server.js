@@ -6,20 +6,25 @@ require("dotenv").config();
 const app = express();
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST"],
+    allowedHeaders: ["Content-Type"],
+  })
+);
+
 app.use(express.json());
 
 app.post("/create-checkout-session", async (req, res) => {
   const { couponCode } = req.body;
-  console.log("Received coupon code:", couponCode); 
 
   try {
-    // Session parameters without discount
     const sessionParams = {
       payment_method_types: ["card"],
       line_items: [
         {
-          price: price_1OtRYHSFe3q2NPFvu6Tvmd7G, // Your price ID
+          price: "price_1OtRYHSFe3q2NPFvu6Tvmd7G",
           quantity: 1,
         },
       ],
@@ -29,12 +34,9 @@ app.post("/create-checkout-session", async (req, res) => {
     };
 
     if (couponCode && couponCode.trim()) {
-      console.log("Checking coupon:", couponCode.trim());
       try {
         const coupon = await stripe.coupons.retrieve(couponCode.trim());
-        console.log("Coupon details:", coupon);
-
-        if (coupon && coupon.valid) {
+        if (coupon && coupon.valid && coupon.active) {
           sessionParams.discounts = [{ coupon: coupon.id }];
         } else {
           return res.status(400).json({ error: "Invalid coupon code" });
@@ -45,10 +47,12 @@ app.post("/create-checkout-session", async (req, res) => {
     }
 
     const session = await stripe.checkout.sessions.create(sessionParams);
-    console.log("session: ", session);
+    console.log("Session: ", session);
     res.json({ id: session.id });
   } catch (error) {
-    return res.status(400).json({ error: error.message || "Invalid or expired coupon code." });
+    return res
+      .status(400)
+      .json({ error: error.message || "An error occurred." });
   }
 });
 
