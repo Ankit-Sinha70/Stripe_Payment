@@ -4,7 +4,7 @@ import { loadStripe } from "@stripe/stripe-js";
 import CheckoutForm from "./CheckoutForm";
 
 function App() {
-  const pk = import.meta.env.VITE_Publishablekey;
+  const pk = import.meta.env.VITE_PUBLISHABLE_KEY;
   const stripePromise = loadStripe(pk);
   // const options: any = {
   //   mode: "payment",
